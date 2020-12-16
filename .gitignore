@@ -3,3 +3,7 @@ poetry.lock
 .venv/
 *.pyc
 __pycache__
+build/
+dist/
+*.whl
+*.tar.gz

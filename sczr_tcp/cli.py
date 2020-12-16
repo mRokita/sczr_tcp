@@ -49,14 +49,15 @@ def render_frame(screen, frame, screen_width, screen_height):
 
 class MessageReader:
 
-    def __init__(self, connection):
+    def __init__(self, connection, buffer_size):
         self._connection = connection
+        self._buffer_size = buffer_size
         self._buffer = ''
 
     def next_message(self):
         recv = ''
         while '\n' not in recv:
-            recv = self._connection.recv(128).decode()
+            recv = self._connection.recv(self._buffer_size).decode()
             if not recv:
                 self._connection.close()
                 return None
@@ -73,7 +74,8 @@ def check_quit():
 
 
 def run(host: str = typer.Option(default='0.0.0.0'), port: int = typer.Option(default=9000),
-        width: int = typer.Option(default=1000), height: int = typer.Option(default=300)):
+        width: int = typer.Option(default=1000), height: int = typer.Option(default=300),
+        buffer_size: int = typer.Option(default=20480)):
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,9 +83,9 @@ def run(host: str = typer.Option(default='0.0.0.0'), port: int = typer.Option(de
     sock.listen()
 
     while check_quit():
-        logger.info('Listening on 0.0.0.0:9000')
+        logger.info(f'Listening on {host}:{port}')
         connection, address = sock.accept()
-        reader = MessageReader(connection)
+        reader = MessageReader(connection, buffer_size)
         while check_quit():
             msg = reader.next_message()
             if not msg:
